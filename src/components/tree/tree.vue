@@ -10,16 +10,19 @@
     role="tree"
   >
     <!-- 常用选择 -->
-    <el-tree-node
-      v-for="child in usualOptions"
-      :node="child"
-      :props="props"
-      :render-after-expand="renderAfterExpand"
-      :show-checkbox="showCheckbox"
-      :key="getNodeKey(child)"
-      :render-content="renderContent"
-      @node-expand="handleNodeExpand">
-    </el-tree-node>
+    <template v-if="usualTreeStore">
+      <el-tree-node
+        ref="usual"
+        v-for="child in usualTreeStore.root.childNodes"
+        :node="child"
+        :props="props"
+        :render-after-expand="renderAfterExpand"
+        :show-checkbox="showCheckbox"
+        :key="getNodeKey(child)"
+        :render-content="renderContent"
+        @node-expand="handleNodeExpand">
+      </el-tree-node>
+    </template>
 
     <el-tree-node
       v-for="child in root.childNodes"
@@ -50,6 +53,7 @@
   import emitter from 'element-ui/src/mixins/emitter';
   import { addClass, removeClass } from 'element-ui/src/utils/dom';
 
+  const USUAL_KEY = 'USUAL';
   export default {
     name: 'ElTree',
 
@@ -71,7 +75,8 @@
           draggingNode: null,
           dropNode: null,
           allowDrop: true
-        }
+        },
+        usualTreeStore: null
       };
     },
 
@@ -170,10 +175,11 @@
         let result = [];
         const usualKeys = this.usualKeys;
         const nodeKey = this.nodeKey;
-        console.log('usualKeys:', usualKeys);
+        if (!this.root) {
+          return [];
+        }
         const recursion = (data) => {
           data.forEach(item => {
-            console.log('item[nodeKey]:', item);
             if (usualKeys.includes(item.data[nodeKey])) {
               result.push(item);
             }
@@ -188,6 +194,11 @@
     },
 
     watch: {
+      usualOptions(val) {
+        if (this.root) {
+          this.usualTreeStore.root.childNodes[0].childNodes = this.usualOptions;
+        }
+      },
       defaultCheckedKeys(newVal) {
         this.store.setDefaultCheckedKey(newVal);
       },
@@ -216,6 +227,43 @@
       filter(value) {
         if (!this.filterNodeMethod) throw new Error('[Tree] filterNodeMethod is required when filter');
         this.store.filter(value);
+      },
+
+      creatUsualTreeStore() {
+        this.usualTreeStore = new TreeStore({
+          key: this.nodeKey,
+          data: [
+            {
+              label: '常用选择',
+              id: 'USUAL',
+              // 这个children只是初始化时候用到，并没有实质性作用
+              children: [
+                {
+                  label: '',
+                  id: 'slot'
+                }
+              ]
+            }
+          ],
+          lazy: this.lazy,
+          props: this.props,
+          load: this.load,
+          currentNodeKey: this.currentNodeKey,
+          checkStrictly: this.checkStrictly,
+          checkDescendants: this.checkDescendants,
+          defaultCheckedKeys: this.defaultCheckedKeys,
+          defaultExpandedKeys: this.defaultExpandedKeys,
+          autoExpandParent: this.autoExpandParent,
+          defaultExpandAll: this.defaultExpandAll,
+          filterNodeMethod: this.filterNodeMethod
+        });
+
+        // this.$nextTick(() => {
+        //   const ref = this.$refs['usual'][0];
+        //   ref.childNodeRendered = true;
+        //   ref.expanded = true;
+        //   ref.node.isLeaf = false;
+        // })
       },
 
       getNodeKey(node) {
@@ -373,6 +421,8 @@
         defaultExpandAll: this.defaultExpandAll,
         filterNodeMethod: this.filterNodeMethod
       });
+
+      this.creatUsualTreeStore();
 
       this.root = this.store.root;
 

@@ -1,33 +1,98 @@
 <template>
   <section>
     <el-tree
+      ref="tree"
       :data="data"
       :usual-keys="usualKeys"
       show-checkbox
       node-key="id"
+      @check="checkHandler"
+      @check-change="checkChangeHandler"
     >
     </el-tree>
+
+    <button @click="addUsual">添加常用</button>
   </section>
 </template>
 
 <script>
 import ElTree from './tree/tree';
+const USUAL_KEY = 'USUAL';
 export default {
   name: 'HelloWorld',
   components: {
     ElTree
   },
+  methods: {
+    usualTreeSetChecked(key, val) {
+      this.$refs['tree'].usualTreeStore.setChecked(key, val);
+    },
+    checkChangeHandler(node, checked) {
+      // 为update把常用选择里的parent
+      if (node.id === USUAL_KEY) {
+        // this.checkedNodes.forEach(node => {
+        //   if (node.children) {
+        //     this.$refs['tree'].setChecked(node.id, true);
+        //   }
+        // });
+        this.usualKeys.forEach(key => {
+          this.$refs['tree'].setChecked(key, checked);
+        })
+      }
+    },
+    checkHandler(target, obj) {
+      console.log('checkHandler:', target, obj);
+      this.checkedNodes = obj.checkedNodes;
+      this.checkedKeys = obj.checkedKeys;
+
+
+      if (this.checkedKeys.length > 0 && this.usualKeys.length > 0) {
+        // 如果常用选择里的选项都选择了
+        if (this.usualKeys.every(id => {
+          return this.checkedKeys.includes(id);
+        })) {
+          console.log('bingo');
+          this.$refs['tree'].usualTreeStore.setChecked(USUAL_KEY, true);
+        } else {
+          this.$refs['tree'].usualTreeStore.setChecked(USUAL_KEY, false);
+        }
+      } else {
+        this.$refs['tree'].usualTreeStore.setChecked(USUAL_KEY, false);
+      }
+    },
+    addUsual() {
+      this.usualKeys = this.checkedNodes.filter(item => !item.children).map(item => item.id);
+    }
+  },
   data () {
     return {
-      usualKeys: ['c1'],
+      usualKeys: ['c1-1', 'c1-2', 'c1-3', 'c1-4', 'c1-5'],
+      checkedNodes: [],
+      checkedKeys: [],
       data: [
         {
           id: 'p1',
           label: 'parent1',
           children: [
             {
-              id: 'c1',
-              label: 'child2'
+              id: 'c1-1',
+              label: 'c1-1'
+            },
+            {
+              id: 'c1-2',
+              label: 'c1-2'
+            },
+            {
+              id: 'c1-3',
+              label: 'c1-3'
+            },
+            {
+              id: 'c1-4',
+              label: 'c1-4'
+            },
+            {
+              id: 'c1-5',
+              label: 'c1-5'
             }
           ]
         },
