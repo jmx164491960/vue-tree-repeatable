@@ -211,6 +211,7 @@
             checkedKeys: store.getCheckedKeys(),
             halfCheckedNodes: store.getHalfCheckedNodes(),
             halfCheckedKeys: store.getHalfCheckedKeys(),
+            checked: ev.target.checked
           });
         });
       },
