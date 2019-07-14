@@ -7,7 +7,7 @@
       show-checkbox
       node-key="id"
       @check="checkHandler"
-      @check-change="checkChangeHandler"
+      @current-change="currentChangeHandler"
     >
     </el-tree>
 
@@ -27,31 +27,26 @@ export default {
     usualTreeSetChecked(key, val) {
       this.$refs['tree'].usualTreeStore.setChecked(key, val);
     },
-    checkChangeHandler(node, checked) {
-      // 为update把常用选择里的parent
-      if (node.id === USUAL_KEY) {
-        // this.checkedNodes.forEach(node => {
-        //   if (node.children) {
-        //     this.$refs['tree'].setChecked(node.id, true);
-        //   }
-        // });
-        this.usualKeys.forEach(key => {
-          this.$refs['tree'].setChecked(key, checked);
-        })
-      }
+    currentChangeHandler(v1, v2) {
+      console.log('currentChangeHandler', v1, v2);
     },
-    checkHandler(target, obj) {
-      console.log('checkHandler:', target, obj);
+    checkHandler(node, obj) {
+      console.log('checkHandler:', node, obj);
       this.checkedNodes = obj.checkedNodes;
       this.checkedKeys = obj.checkedKeys;
 
+      // 为update把常用选择里的parent
+      if (node.id === USUAL_KEY) {
+        this.usualKeys.forEach(key => {
+          this.$refs['tree'].setChecked(key, obj.checked);
+        })
+      }
 
       if (this.checkedKeys.length > 0 && this.usualKeys.length > 0) {
         // 如果常用选择里的选项都选择了
         if (this.usualKeys.every(id => {
           return this.checkedKeys.includes(id);
         })) {
-          console.log('bingo');
           this.$refs['tree'].usualTreeStore.setChecked(USUAL_KEY, true);
         } else {
           this.$refs['tree'].usualTreeStore.setChecked(USUAL_KEY, false);
@@ -61,7 +56,8 @@ export default {
       }
     },
     addUsual() {
-      this.usualKeys = this.checkedNodes.filter(item => !item.children).map(item => item.id);
+      const checkedChildrenId = this.checkedNodes.filter(item => !item.children).map(item => item.id);
+      this.usualKeys = [...new Set([...this.usualKeys, ...checkedChildrenId])];
     }
   },
   data () {
