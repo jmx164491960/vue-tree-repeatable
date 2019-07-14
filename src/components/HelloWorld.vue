@@ -2,6 +2,7 @@
   <section>
     <el-tree
       :data="data"
+      :usual-keys="usualKeys"
       show-checkbox
       node-key="id"
     >
@@ -18,6 +19,7 @@ export default {
   },
   data () {
     return {
+      usualKeys: ['c1'],
       data: [
         {
           id: 'p1',

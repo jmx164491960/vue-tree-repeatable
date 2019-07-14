@@ -9,6 +9,18 @@
     }"
     role="tree"
   >
+    <!-- 常用选择 -->
+    <el-tree-node
+      v-for="child in usualOptions"
+      :node="child"
+      :props="props"
+      :render-after-expand="renderAfterExpand"
+      :show-checkbox="showCheckbox"
+      :key="getNodeKey(child)"
+      :render-content="renderContent"
+      @node-expand="handleNodeExpand">
+    </el-tree-node>
+
     <el-tree-node
       v-for="child in root.childNodes"
       :node="child"
@@ -64,6 +76,10 @@
     },
 
     props: {
+      usualKeys: {
+        type: Array,
+        default: () => []
+      },
       data: {
         type: Array
       },
@@ -148,6 +164,26 @@
       isEmpty() {
         const { childNodes } = this.root;
         return !childNodes || childNodes.length === 0 || childNodes.every(({visible}) => !visible);
+      },
+
+      usualOptions() {
+        let result = [];
+        const usualKeys = this.usualKeys;
+        const nodeKey = this.nodeKey;
+        console.log('usualKeys:', usualKeys);
+        const recursion = (data) => {
+          data.forEach(item => {
+            console.log('item[nodeKey]:', item);
+            if (usualKeys.includes(item.data[nodeKey])) {
+              result.push(item);
+            }
+            if (item.childNodes) {
+              recursion(item.childNodes)
+            }
+          })
+        }
+        recursion(this.root.childNodes);
+        return result;
       }
     },
 
