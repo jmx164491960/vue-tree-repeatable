@@ -7,7 +7,6 @@
       show-checkbox
       node-key="id"
       @check="checkHandler"
-      @current-change="currentChangeHandler"
     >
     </el-tree>
 
@@ -26,9 +25,6 @@ export default {
   methods: {
     usualTreeSetChecked(key, val) {
       this.$refs['tree'].usualTreeStore.setChecked(key, val);
-    },
-    currentChangeHandler(v1, v2) {
-      console.log('currentChangeHandler', v1, v2);
     },
     checkHandler(node, obj) {
       console.log('checkHandler:', node, obj);
